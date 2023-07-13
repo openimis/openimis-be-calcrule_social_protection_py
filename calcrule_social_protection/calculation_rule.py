@@ -1,14 +1,12 @@
-import uuid
-from calcrule_social_protection.apps import AbsCalculationRule
+from calcrule_social_protection.benefit_plan_calculation_rule import (
+    BenefitPackageCalculationRule
+)
 from calcrule_social_protection.config import CLASS_RULE_PARAM_VALIDATION, DESCRIPTION_CONTRIBUTION_VALUATION, FROM_TO
-from django.core.exceptions import ValidationError
-from gettext import gettext as _
 from core.signals import *
 from core import datetime
-from django.contrib.contenttypes.models import ContentType
 
 
-class SocialProtectionCalculationRule(AbsCalculationRule):
+class SocialProtectionCalculationRule(BenefitPackageCalculationRule):
     version = 1
     uuid = "32d96b58-898a-460a-b357-5fd4b95cd87c"
     calculation_rule_name = "Calculation rule: social protection"
@@ -42,23 +40,3 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
                 cls.signal_get_linked_class.connect(cls.get_linked_class, dispatch_uid="on_get_linked_class_signal")
                 cls.signal_calculate_event.connect(cls.run_calculation_rules, dispatch_uid="on_calculate_event_signal")
                 cls.signal_convert_from_to.connect(cls.run_convert, dispatch_uid="on_convert_from_to")
-
-    @classmethod
-    def active_for_object(cls, instance, context, type, sub_type):
-        pass
-
-    @classmethod
-    def check_calculation(cls, instance):
-        pass
-
-    @classmethod
-    def calculate(cls, instance, **kwargs):
-        pass
-
-    @classmethod
-    def get_linked_class(cls, sender, class_name, **kwargs):
-        pass
-
-    @classmethod
-    def convert(cls, instance, convert_to, **kwargs):
-        pass

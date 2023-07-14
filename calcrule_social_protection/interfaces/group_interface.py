@@ -39,20 +39,20 @@ class GroupBenefitPlanInterface:
 
     @classmethod
     def convert(cls, payment_plan, **kwargs):
-        beneficiary = kwargs.get('beneficiary', None)
+        group = kwargs.get('group', None)
         amount = kwargs.get('amount', None)
-        convert_results = cls._convert_beneficiary_to_bill(payment_plan, beneficiary, amount)
+        convert_results = cls._convert_group_to_bill(payment_plan, group, amount)
         convert_results['user'] = kwargs.get('user', None)
         result_bill_creation = BillService.bill_create(convert_results=convert_results)
         return result_bill_creation
 
     @classmethod
-    def _convert_beneficiary_to_bill(cls, payment_plan, beneficiary, amount):
+    def _convert_group_to_bill(cls, payment_plan, group, amount):
         bill = GroupToBillConverter.to_bill_obj(
-            payment_plan, beneficiary, amount
+            payment_plan, group, amount
         )
         bill_line_items = [
-            GroupToBillItemConverter.to_bill_item_obj(payment_plan, beneficiary, amount)
+            GroupToBillItemConverter.to_bill_item_obj(payment_plan, group, amount)
         ]
         return {
             'bill_data': bill,

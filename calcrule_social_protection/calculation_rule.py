@@ -1,12 +1,12 @@
-from calcrule_social_protection.benefit_plan_calculation_rule import (
-    BenefitPackageCalculationRule
+from calcrule_social_protection.benefit_plan_strategy import (
+    BenefitPackageStrategy
 )
 from calcrule_social_protection.config import CLASS_RULE_PARAM_VALIDATION, DESCRIPTION_CONTRIBUTION_VALUATION, FROM_TO
 from core.signals import *
 from core import datetime
 
 
-class SocialProtectionCalculationRule(BenefitPackageCalculationRule):
+class SocialProtectionCalculationRule(BenefitPackageStrategy):
     version = 1
     uuid = "32d96b58-898a-460a-b357-5fd4b95cd87c"
     calculation_rule_name = "Calculation rule: social protection"

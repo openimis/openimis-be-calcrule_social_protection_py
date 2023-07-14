@@ -6,7 +6,7 @@ from calcrule_social_protection.benefit_plan_interfaces import (
 )
 
 
-class BenefitPackageCalculationRule(AbsCalculationRule):
+class BenefitPackageStrategy(AbsCalculationRule):
 
     @classmethod
     def run_calculation_rules(cls, sender, payment_plan, user, context, **kwargs):

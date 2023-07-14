@@ -8,22 +8,6 @@ from calcrule_social_protection.converters import (
 )
 
 
-class GroupBenefitPlanInterface:
-    TYPE = "GROUP"
-
-    @classmethod
-    def check_calculation(cls, calculation, payment_plan):
-        return calculation.uuid == str(payment_plan.calculation)
-
-    @classmethod
-    def calculate(cls, calculation, payment_plan, **kwargs):
-        pass
-
-    @classmethod
-    def convert(cls, calculation, payment_plan, convert_to, **kwargs):
-        pass
-
-
 class IndividualBenefitPlanInterface:
     TYPE = "INDIVIDUAL"
 

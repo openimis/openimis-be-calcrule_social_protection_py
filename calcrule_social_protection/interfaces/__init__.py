@@ -1,0 +1,2 @@
+from calcrule_social_protection.interfaces.group_interface import GroupBenefitPlanInterface
+from calcrule_social_protection.interfaces.individual_interface import IndividualBenefitPlanInterface

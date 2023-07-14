@@ -1,6 +1,6 @@
 from core.abs_calculation_rule import AbsCalculationRule
 
-from calcrule_social_protection.benefit_plan_interfaces import (
+from calcrule_social_protection.interfaces import (
     GroupBenefitPlanInterface,
     IndividualBenefitPlanInterface
 )

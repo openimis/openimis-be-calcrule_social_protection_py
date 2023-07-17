@@ -10,6 +10,10 @@ CLASS_RULE_PARAM_VALIDATION = [
                     "fr": "Fixed batch"
                 },
                 "rights": {
+                    "read": "157101",
+                    "write": "157102",
+                    "update": "157103",
+                    "replace": "157206"
                 },
                 "relevance": "True",
                 "condition": "INPUT>=0",

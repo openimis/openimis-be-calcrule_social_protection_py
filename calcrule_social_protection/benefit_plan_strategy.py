@@ -8,6 +8,8 @@ from calcrule_social_protection.interfaces import (
 
 class BenefitPackageStrategy(AbsCalculationRule):
 
+    CLASS_NAME_CHECK = 'PaymentPlan'
+
     @classmethod
     def run_calculation_rules(cls, sender, payment_plan, user, context, **kwargs):
         return cls.calculate_if_active_for_object(payment_plan, **kwargs)
@@ -24,6 +26,14 @@ class BenefitPackageStrategy(AbsCalculationRule):
     @classmethod
     def get_linked_class(cls, sender, class_name, **kwargs):
         return ["Calculation"]
+
+    @classmethod
+    def get_parameters(cls, sender, class_name, instance, **kwargs):
+        rule_details = cls.get_rule_details(sender=sender, class_name=class_name)
+        if rule_details:
+            if instance.__class__.__name__ == cls.CLASS_NAME_CHECK:
+                if cls.check_calculation(payment_plan=instance):
+                    return rule_details["parameters"] if "parameters" in rule_details else []
 
     @classmethod
     def run_convert(cls, payment_plan, **kwargs):

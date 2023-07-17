@@ -1,6 +1,9 @@
 from core.models import User
 from invoice.services import BillService
-from social_protection.models import GroupBeneficiary
+from social_protection.models import (
+    BeneficiaryStatus,
+    GroupBeneficiary
+)
 
 from calcrule_social_protection.converters import (
     GroupToBillConverter,
@@ -19,7 +22,9 @@ class GroupBenefitPlanInterface:
     def calculate(cls, calculation, payment_plan, **kwargs):
         # 1. Get the list of beneficiares assigned to benefit plan from payment plan
         # each beneficiary group from benefit plan assigned to this payment plan is a single bill
-        groups_beneficiary = GroupBeneficiary.objects.filter(benefit_plan=payment_plan.benefit_plan)
+        groups_beneficiary = GroupBeneficiary.objects.filter(
+            benefit_plan=payment_plan.benefit_plan, status=BeneficiaryStatus.POTENTIAL
+        )
         # 2. Get the parameters from payment plan with fixed and advanced criteria
         payment_plan_parameters = payment_plan.json_ext
         audit_user_id, start_date, end_date = \

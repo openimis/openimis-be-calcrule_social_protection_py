@@ -35,7 +35,7 @@ class GroupBenefitPlanInterface:
                 amount=fixed_amount,
                 user=user
             )
-        return "calculation and tranformation into bills finished successfully"
+        return "Calculation and transformation into bills completed successfully."
 
     @classmethod
     def convert(cls, payment_plan, **kwargs):

@@ -31,8 +31,8 @@ class BenefitPackageStrategy(AbsCalculationRule):
     def get_parameters(cls, sender, class_name, instance, **kwargs):
         rule_details = cls.get_rule_details(sender=sender, class_name=class_name)
         if rule_details:
-            if instance.__class__.__name__ == cls.CLASS_NAME_CHECK:
-                if cls.check_calculation(payment_plan=instance):
+            if class_name == cls.CLASS_NAME_CHECK or instance.__class__.__name__ == cls.CLASS_NAME_CHECK:
+                if class_name == cls.CLASS_NAME_CHECK or cls.check_calculation(payment_plan=instance):
                     return rule_details["parameters"] if "parameters" in rule_details else []
 
     @classmethod

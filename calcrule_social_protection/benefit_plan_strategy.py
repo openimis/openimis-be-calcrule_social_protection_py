@@ -25,7 +25,7 @@ class BenefitPackageStrategy(AbsCalculationRule):
 
     @classmethod
     def get_linked_class(cls, sender, class_name, **kwargs):
-        return ["Calculation", "ABCMeta"]
+        return ["Calculation"]
 
     @classmethod
     def get_parameters(cls, sender, class_name, instance, **kwargs):

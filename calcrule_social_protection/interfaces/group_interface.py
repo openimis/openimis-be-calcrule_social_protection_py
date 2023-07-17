@@ -57,5 +57,5 @@ class GroupBenefitPlanInterface:
         return {
             'bill_data': bill,
             'bill_data_line': bill_line_items,
-            'type_conversion': 'beneficiary - bill'
+            'type_conversion': 'group - bill'
         }

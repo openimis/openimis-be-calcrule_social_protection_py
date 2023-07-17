@@ -11,10 +11,10 @@ class GroupToBillConverter:
         bill = {}
         cls._build_subject(bill, group)
         cls._build_thirdparty(bill, payment_plan)
-        cls._build_code(bill, group, group)
+        cls._build_code(bill, payment_plan, group)
         cls._build_price(bill, amount)
         cls._build_terms(bill, payment_plan)
-        cls._build_date_dates(bill, group)
+        cls._build_date_dates(bill, payment_plan)
         cls._build_currency(bill)
         cls._build_status(bill)
         return bill

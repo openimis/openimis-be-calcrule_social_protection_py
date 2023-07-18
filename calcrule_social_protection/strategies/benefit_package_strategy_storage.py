@@ -6,7 +6,6 @@ from calcrule_social_protection.strategies.benefit_package_base_strategy import 
 
 class BenefitPackageStrategyStorage:
 
-    CLASS_NAME_CHECK = ['PaymentPlan']
     BASE_CLASS = BaseBenefitPackageStrategy
     MODULE_NAME = "calcrule_social_protection.strategies"
 

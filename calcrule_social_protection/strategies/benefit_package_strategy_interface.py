@@ -5,10 +5,6 @@ class BenefitPackageStrategyInterface:
     BENEFICIARY_TYPE = None
 
     @classmethod
-    def get_parameters(cls, sender, class_name, instance, **kwargs):
-        pass
-
-    @classmethod
     def check_calculation(cls, payment_plan, **kwargs):
         pass
 

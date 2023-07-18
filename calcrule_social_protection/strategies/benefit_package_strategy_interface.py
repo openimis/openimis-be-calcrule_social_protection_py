@@ -9,7 +9,7 @@ class BenefitPackageStrategyInterface:
         pass
 
     @classmethod
-    def calculate(cls, payment_plan, beneficiary_object, beneficiary_type, **kwargs):
+    def calculate(cls, payment_plan, **kwargs):
         pass
 
     @classmethod

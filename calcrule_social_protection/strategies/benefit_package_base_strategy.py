@@ -1,4 +1,5 @@
 from core.models import User
+from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
 
 from calcrule_social_protection.strategies.benefit_package_strategy_interface import BenefitPackageStrategyInterface
@@ -35,3 +36,28 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
                 **additional_params
             )
         return "Calculation and transformation into bills completed successfully."
+
+    @classmethod
+    def convert(cls, payment_plan, **kwargs):
+        beneficiary = kwargs.get('beneficiary', None)
+        amount = kwargs.get('amount', None)
+        converter = kwargs.get('converter')
+        converter_item = kwargs.get('converter_item')
+        convert_results = cls._convert_entity_to_bill(converter, converter_item, payment_plan, beneficiary, amount)
+        convert_results['user'] = kwargs.get('user', None)
+        result_bill_creation = BillService.bill_create(convert_results=convert_results)
+        return result_bill_creation
+
+    @classmethod
+    def _convert_entity_to_bill(cls, converter, converter_item, payment_plan, entity, amount):
+        bill = converter.to_bill_obj(
+            payment_plan, entity, amount
+        )
+        bill_line_items = [
+            converter_item.to_bill_item_obj(payment_plan, entity, amount)
+        ]
+        return {
+            'bill_data': bill,
+            'bill_data_line': bill_line_items,
+            'type_conversion': 'beneficiary - bill'
+        }

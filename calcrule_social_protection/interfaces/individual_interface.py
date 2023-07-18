@@ -23,7 +23,7 @@ class IndividualBenefitPlanInterface:
         # 1. Get the list of beneficiares assigned to benefit plan from payment plan
         # each beneficiary from benefit plan assigned to this payment plan is a single bill
         beneficiares = Beneficiary.objects.filter(
-            benefit_plan=payment_plan.benefit_plan,  status=BeneficiaryStatus.POTENTIAL
+            benefit_plan=payment_plan.benefit_plan,  status=BeneficiaryStatus.ACTIVE
         )
         # 2. Get the parameters from payment plan with fixed and advanced criteria
         payment_plan_parameters = payment_plan.json_ext

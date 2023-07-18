@@ -39,11 +39,11 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
 
     @classmethod
     def convert(cls, payment_plan, **kwargs):
-        beneficiary = kwargs.get('beneficiary', None)
+        entity = kwargs.get('entity', None)
         amount = kwargs.get('amount', None)
         converter = kwargs.get('converter')
         converter_item = kwargs.get('converter_item')
-        convert_results = cls._convert_entity_to_bill(converter, converter_item, payment_plan, beneficiary, amount)
+        convert_results = cls._convert_entity_to_bill(converter, converter_item, payment_plan, entity, amount)
         convert_results['user'] = kwargs.get('user', None)
         result_bill_creation = BillService.bill_create(convert_results=convert_results)
         return result_bill_creation

@@ -15,7 +15,6 @@ class IndividualBenefitPackageStrategy(BaseBenefitPackageStrategy):
     @classmethod
     def convert(cls, payment_plan, **kwargs):
         beneficiary = kwargs.get('beneficiary', None)
-        # super().convert(payment_plan, beneficiary=beneficiary, **kwargs)
         amount = kwargs.get('amount', None)
         convert_results = cls._convert_beneficiary_to_bill(payment_plan, beneficiary, amount)
         convert_results['user'] = kwargs.get('user', None)

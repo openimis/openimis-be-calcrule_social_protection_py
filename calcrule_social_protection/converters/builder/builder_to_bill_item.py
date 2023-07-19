@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 
 
-class BaseBenefitPackageStrategyItemConverter:
+class BuilderToBillItemConverter:
 
     @classmethod
     def to_bill_item_obj(cls, payment_plan, entity, amount):

@@ -1,2 +1,0 @@
-from calcrule_social_protection.converters.base.base_to_bill import BaseBenefitPackageStrategyConverter
-from calcrule_social_protection.converters.base.base_to_bill_item import BaseBenefitPackageStrategyItemConverter

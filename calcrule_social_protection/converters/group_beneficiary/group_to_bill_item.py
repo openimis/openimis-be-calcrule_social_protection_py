@@ -1,7 +1,7 @@
-from calcrule_social_protection.converters.base import BaseBenefitPackageStrategyItemConverter
+from calcrule_social_protection.converters.builder import BuilderToBillItemConverter
 
 
-class GroupToBillItemConverter(BaseBenefitPackageStrategyItemConverter):
+class GroupToBillItemConverter(BuilderToBillItemConverter):
 
     @classmethod
     def _build_code(cls, bill_line_item, group):

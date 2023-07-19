@@ -3,7 +3,7 @@ from invoice.apps import InvoiceConfig
 from invoice.models import Bill
 
 
-class BaseBenefitPackageStrategyConverter:
+class BuilderToBillConverter:
     TYPE = None
 
     @classmethod

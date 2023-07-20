@@ -1,3 +1,4 @@
+from calcrule_social_protection.converters.string_to_python_values import convert_to_python_value
 from core.models import User
 from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
@@ -22,13 +23,25 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         audit_user_id, start_date, end_date = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
+
+        #  ticket - at this stage use fixed amount, also skip ceiling part
+        payment = payment_plan_parameters['calculation_rule']['fixed_batch']
+        advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
         for beneficiary in beneficiares:
-            # TODO add calculation mechanism once is developed as a part of CM-210
-            #  ticket - at this stage use fixed amount
-            fixed_amount = payment_plan_parameters['calculation_rule']['fixed_batch']
+            for criterion in advanced_filters_criteria:
+                condition = criterion['custom_filter_condition']
+                calculated_amount = criterion['amount']
+                does_amount_apply_for_limitations = criterion['count_to_max']
+                if cls._does_beneficiary_meet_advanced_filter_condition(beneficiary, condition):
+                    if does_amount_apply_for_limitations:
+                        # TODO: ceiling part
+                        continue
+                    else:
+                        payment += calculated_amount
+
             additional_params = {
                 f"{cls.BENEFICIARY_TYPE}": beneficiary,
-                "amount": fixed_amount,
+                "amount": payment,
                 "user": user
             }
             calculation.run_convert(
@@ -36,6 +49,17 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
                 **additional_params
             )
         return "Calculation and transformation into bills completed successfully."
+
+    @classmethod
+    def _does_beneficiary_meet_advanced_filter_condition(cls, beneficiary, condition):
+        condition_key, condition_value = condition.split("=")
+        json_key, lookup = condition_key.split('__')[0:2]
+        parsed_condition_value = convert_to_python_value(condition_value)
+        if json_key in beneficiary.json_ext:
+            return cls.BENEFICIARY_OBJECT.objects.filter(
+                        id=beneficiary.id, **{f'json_ext__{json_key}__{lookup}': parsed_condition_value}
+                    ).exists()
+        return False
 
     @classmethod
     def convert(cls, payment_plan, **kwargs):

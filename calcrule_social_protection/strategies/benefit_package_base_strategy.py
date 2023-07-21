@@ -28,20 +28,11 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         payment = payment_plan_parameters['calculation_rule']['fixed_batch']
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
         for beneficiary in beneficiares:
-            for criterion in advanced_filters_criteria:
-                condition = criterion['custom_filter_condition']
-                calculated_amount = float(criterion['amount'])
-                does_amount_apply_for_limitations = criterion['count_to_max']
-                if cls._does_beneficiary_meet_condition(beneficiary, condition):
-                    if does_amount_apply_for_limitations:
-                        # TODO: ceiling part
-                        continue
-                    else:
-                        payment += calculated_amount
+            calculated_payment = cls._calculate_payment(beneficiary, advanced_filters_criteria, payment)
 
             additional_params = {
                 f"{cls.BENEFICIARY_TYPE}": beneficiary,
-                "amount": payment,
+                "amount": calculated_payment,
                 "user": user
             }
             calculation.run_convert(
@@ -49,6 +40,20 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
                 **additional_params
             )
         return "Calculation and transformation into bills completed successfully."
+
+    @classmethod
+    def _calculate_payment(cls, beneficiary, advanced_filters_criteria, payment):
+        for criterion in advanced_filters_criteria:
+            condition = criterion['custom_filter_condition']
+            calculated_amount = float(criterion['amount'])
+            does_amount_apply_for_limitations = criterion.get('count_to_max', False)
+            if cls._does_beneficiary_meet_condition(beneficiary, condition):
+                if does_amount_apply_for_limitations:
+                    # TODO: ceiling part
+                    continue
+                else:
+                    payment += calculated_amount
+        return payment
 
     @classmethod
     def _does_beneficiary_meet_condition(cls, beneficiary, condition):

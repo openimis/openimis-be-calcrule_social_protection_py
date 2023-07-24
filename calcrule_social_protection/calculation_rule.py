@@ -91,4 +91,5 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
         audit_user_id = kwargs.get('audit_user_id', None)
         start_date = kwargs.get('start_date', None)
         end_date = kwargs.get('end_date', None)
-        return audit_user_id, start_date, end_date
+        payment_cycle = kwargs.get('payment_cycle', None)
+        return audit_user_id, start_date, end_date, payment_cycle

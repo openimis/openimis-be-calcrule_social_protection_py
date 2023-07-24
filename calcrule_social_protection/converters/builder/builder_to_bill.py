@@ -7,11 +7,11 @@ class BuilderToBillConverter:
     TYPE = None
 
     @classmethod
-    def to_bill_obj(cls, payment_plan, entity, amount):
+    def to_bill_obj(cls, payment_plan, entity, amount, end_date, payment_cycle):
         bill = {}
         cls._build_subject(bill, entity)
-        cls._build_thirdparty(bill, payment_plan)
-        cls._build_code(bill, payment_plan, entity)
+        cls._build_thirdparty(bill, payment_cycle)
+        cls._build_code(bill, payment_plan, entity, end_date)
         cls._build_price(bill, amount)
         cls._build_terms(bill, payment_plan)
         cls._build_date_dates(bill, payment_plan)
@@ -25,12 +25,12 @@ class BuilderToBillConverter:
         bill['subject_type'] = ContentType.objects.get_for_model(entity)
 
     @classmethod
-    def _build_thirdparty(cls, bill, payment_plan):
-        bill["thirdparty_id"] = payment_plan.benefit_plan.id
-        bill['thirdparty_type'] = ContentType.objects.get_for_model(payment_plan.benefit_plan)
+    def _build_thirdparty(cls, bill, payment_cycle):
+        bill["thirdparty_id"] = payment_cycle.id
+        bill['thirdparty_type'] = ContentType.objects.get_for_model(payment_cycle)
 
     @classmethod
-    def _build_code(cls, bill, payment_plan, entity):
+    def _build_code(cls, bill, payment_plan, entity, end_date):
         pass
 
     @classmethod

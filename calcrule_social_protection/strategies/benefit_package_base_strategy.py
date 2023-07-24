@@ -1,12 +1,19 @@
+from django.db import transaction
+
 from core.models import User
 from core.utils import convert_to_python_value
+from core.signals import register_service_signal
 from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
+from tasks_management.models import Task
+from tasks_management.services import TaskService
 
 from calcrule_social_protection.strategies.benefit_package_strategy_interface import BenefitPackageStrategyInterface
 
 
 class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
+    is_exceed_limit = False
+
     @classmethod
     def check_calculation(cls, calculation, payment_plan):
         return calculation.uuid == str(payment_plan.calculation)
@@ -23,11 +30,14 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         audit_user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
-        #  :TODO ticket - at this stage use fixed amount, also skip ceiling part
         payment = payment_plan_parameters['calculation_rule']['fixed_batch']
+        limit = payment_plan_parameters['calculation_rule']['limit_per_single_transaction']
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
         for beneficiary in beneficiares:
-            calculated_payment = cls._calculate_payment(beneficiary, advanced_filters_criteria, payment)
+            # flag to determine is exceeed limit
+            calculated_payment = cls._calculate_payment(
+                beneficiary, advanced_filters_criteria, payment, limit
+            )
 
             additional_params = {
                 f"{cls.BENEFICIARY_TYPE}": beneficiary,
@@ -43,18 +53,30 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         return "Calculation and transformation into bills completed successfully."
 
     @classmethod
-    def _calculate_payment(cls, beneficiary, advanced_filters_criteria, payment):
+    def _calculate_payment(cls, beneficiary, advanced_filters_criteria, payment, limit):
         for criterion in advanced_filters_criteria:
             condition = criterion['custom_filter_condition']
             calculated_amount = float(criterion['amount'])
             does_amount_apply_for_limitations = criterion.get('count_to_max', False)
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
                 if does_amount_apply_for_limitations:
-                    # TODO: ceiling part
-                    continue
+                    cls.is_exceed_limit = True if calculated_amount > limit else False
                 else:
                     payment += calculated_amount
         return payment
+
+    @transaction.atomic
+    @register_service_signal('calcrule_social_protection.create_task')
+    def create_task_after_exceeding_limit(self, convert_results):
+        TaskService(convert_results['user']).create({
+            'source': 'calcrule_social_protection',
+            'entity': None,
+            'status': Task.Status.RECEIVED,
+            'executor_action_event': 'convert_entity_to_bill',
+            'business_event': 'convert_entity_to_bill',
+            'data': convert_results
+        })
+        pass
 
     @classmethod
     def _does_beneficiary_meet_condition(cls, beneficiary, condition):
@@ -79,8 +101,11 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
         )
         convert_results['user'] = kwargs.get('user', None)
-        result_bill_creation = BillService.bill_create(convert_results=convert_results)
-        return result_bill_creation
+        if cls.is_exceed_limit:
+            result_bill_creation = BillService.bill_create(convert_results=convert_results)
+            return result_bill_creation
+        else:
+            cls.create_task_after_exceeding_limit(convert_results=convert_results)
 
     @classmethod
     def _convert_entity_to_bill(

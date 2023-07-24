@@ -23,7 +23,6 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         audit_user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
-        print(payment_cycle)
         #  :TODO ticket - at this stage use fixed amount, also skip ceiling part
         payment = payment_plan_parameters['calculation_rule']['fixed_batch']
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria']

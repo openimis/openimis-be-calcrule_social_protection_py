@@ -20,10 +20,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         )
         # 2. Get the parameters from payment plan with fixed and advanced criteria
         payment_plan_parameters = payment_plan.json_ext
-        audit_user_id, start_date, end_date = \
+        audit_user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
-
         #  :TODO ticket - at this stage use fixed amount, also skip ceiling part
         payment = payment_plan_parameters['calculation_rule']['fixed_batch']
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
@@ -33,7 +32,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             additional_params = {
                 f"{cls.BENEFICIARY_TYPE}": beneficiary,
                 "amount": calculated_payment,
-                "user": user
+                "user": user,
+                "end_date": end_date,
+                "payment_cycle": payment_cycle
             }
             calculation.run_convert(
                 payment_plan,
@@ -70,17 +71,23 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     def convert(cls, payment_plan, **kwargs):
         entity = kwargs.get('entity', None)
         amount = kwargs.get('amount', None)
+        end_date = kwargs.get('end_date', None)
+        payment_cycle = kwargs.get('payment_cycle', None)
         converter = kwargs.get('converter')
         converter_item = kwargs.get('converter_item')
-        convert_results = cls._convert_entity_to_bill(converter, converter_item, payment_plan, entity, amount)
+        convert_results = cls._convert_entity_to_bill(
+            converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
+        )
         convert_results['user'] = kwargs.get('user', None)
         result_bill_creation = BillService.bill_create(convert_results=convert_results)
         return result_bill_creation
 
     @classmethod
-    def _convert_entity_to_bill(cls, converter, converter_item, payment_plan, entity, amount):
+    def _convert_entity_to_bill(
+        cls, converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
+    ):
         bill = converter.to_bill_obj(
-            payment_plan, entity, amount
+            payment_plan, entity, amount, end_date, payment_cycle
         )
         bill_line_items = [
             converter_item.to_bill_item_obj(payment_plan, entity, amount)

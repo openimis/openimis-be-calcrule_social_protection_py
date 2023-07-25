@@ -1,14 +1,13 @@
+import json
 import logging
 
-from core.models import InteractiveUser, User
+from core.models import User
 from core.service_signals import ServiceSignalBindType
 from core.signals import bind_service_signal
 
 from openIMIS.openimisapps import openimis_apps
 
-from individual.models import IndividualDataSourceUpload
-from social_protection.models import BenefitPlanDataUploadRecords, BenefitPlan
-from social_protection.services import BenefitPlanService
+from invoice.services import BillService
 from tasks_management.models import Task
 from tasks_management.services import TaskService
 
@@ -18,19 +17,21 @@ imis_modules = openimis_apps()
 
 def bind_service_signals():
 
-    def on_task_complete_benefit_plan_update(**kwargs):
+    def on_task_complete_calculate(**kwargs):
         try:
+            print(kwargs)
             result = kwargs.get('result', None)
             if result \
                     and result['success'] \
                     and result['data']['task']['business_event'] == 'benefit_plan_update' \
                     and result['data']['task']['status'] == Task.Status.COMPLETED:
                 user = User.objects.get(id=result['data']['user']['id'])
-                BenefitPlanService(user).update(result['data']['task']['data'])
+                convert_results = json.loads(result['data']['task']['data'])
+                BillService(user).bill_create(convert_results)
         except Exception as e:
-            logger.error("Error while executing on_task_complete_benefit_plan_update", exc_info=e)
+            logger.error("Error while executing on_task_complete_calculate", exc_info=e)
 
-    def on_task_resolve_benefit_plan_update(**kwargs):
+    def on_task_resolve_calculate(**kwargs):
         def resolve_task_all(_task, _user):
             if 'FAILED' in _task.business_status.values():
                 TaskService(_user).complete_task({"id": _task.id, 'failed': True})
@@ -78,11 +79,11 @@ def bind_service_signals():
 
     bind_service_signal(
         'task_service.complete_task',
-        on_task_complete_benefit_plan_update,
+        on_task_complete_calculate,
         bind_type=ServiceSignalBindType.AFTER
     )
     bind_service_signal(
         'task_service.resolve_task',
-        on_task_resolve_benefit_plan_update,
+        on_task_resolve_calculate,
         bind_type=ServiceSignalBindType.AFTER
     )

@@ -35,7 +35,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         user = User.objects.filter(i_user__id=audit_user_id).first()
         payment = payment_plan_parameters['calculation_rule']['fixed_batch']
         limit = payment_plan_parameters['calculation_rule']['limit_per_single_transaction']
-        advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
+        advanced_filters_criteria = payment_plan_parameters['advanced_criteria'] if 'advanced_criteria' in payment_plan_parameters else []
         for beneficiary in beneficiares:
             calculated_payment = cls._calculate_payment(
                 beneficiary, advanced_filters_criteria, payment, limit

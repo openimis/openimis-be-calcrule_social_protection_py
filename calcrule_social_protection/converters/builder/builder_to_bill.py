@@ -21,13 +21,13 @@ class BuilderToBillConverter:
 
     @classmethod
     def _build_subject(cls, bill, entity):
-        bill["subject_id"] = entity.id
-        bill['subject_type'] = ContentType.objects.get_for_model(entity)
+        bill["subject_id"] = f"{entity.id}"
+        bill['subject_type_id'] = f"{ContentType.objects.get_for_model(entity).id}"
 
     @classmethod
     def _build_thirdparty(cls, bill, payment_cycle):
-        bill["thirdparty_id"] = payment_cycle.id
-        bill['thirdparty_type'] = ContentType.objects.get_for_model(payment_cycle)
+        bill["thirdparty_id"] = f"{payment_cycle.id}"
+        bill['thirdparty_type_id'] = f"{ContentType.objects.get_for_model(payment_cycle).id}"
 
     @classmethod
     def _build_code(cls, bill, payment_plan, entity, end_date):
@@ -40,10 +40,10 @@ class BuilderToBillConverter:
     @classmethod
     def _build_date_dates(cls, bill, payment_plan):
         from core import datetime, datetimedelta
-        bill["date_due"] = datetime.date.today() + datetimedelta(days=30)
-        bill["date_bill"] = datetime.date.today()
-        bill["date_valid_from"] = payment_plan.benefit_plan.date_valid_from
-        bill["date_valid_to"] = payment_plan.benefit_plan.date_valid_to
+        bill["date_due"] = f"{datetime.date.today() + datetimedelta(days=30)}"
+        bill["date_bill"] = f"{datetime.date.today()}"
+        bill["date_valid_from"] = f"{ payment_plan.benefit_plan.date_valid_from}"
+        bill["date_valid_to"] = f"{payment_plan.benefit_plan.date_valid_to}"
 
     @classmethod
     def _build_currency(cls, bill):

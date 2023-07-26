@@ -1,3 +1,4 @@
+import ast
 import json
 import logging
 
@@ -7,6 +8,7 @@ from core.signals import bind_service_signal
 
 from openIMIS.openimisapps import openimis_apps
 
+from invoice.models import Bill
 from invoice.services import BillService
 from tasks_management.models import Task
 from tasks_management.services import TaskService
@@ -18,16 +20,26 @@ imis_modules = openimis_apps()
 def bind_service_signals():
 
     def on_task_complete_calculate(**kwargs):
+        def create_bill(convert_results, bill_status):
+            convert_results['bill_data']['status'] = bill_status
+            user = User.objects.get(id=result['data']['user']['id'])
+            convert_results['user'] = user
+            BillService(user).bill_create(convert_results=convert_results)
+
         try:
-            print(kwargs)
             result = kwargs.get('result', None)
             if result \
                     and result['success'] \
-                    and result['data']['task']['business_event'] == 'benefit_plan_update' \
-                    and result['data']['task']['status'] == Task.Status.COMPLETED:
-                user = User.objects.get(id=result['data']['user']['id'])
-                convert_results = json.loads(result['data']['task']['data'])
-                BillService(user).bill_create(convert_results)
+                    and result['data']['task']['business_event'] == 'benefit_plan_update':
+                convert_results = result['data']['task']['data']
+                convert_results = convert_results.replace("'", '"')
+                convert_results = json.loads(convert_results)
+                if result['data']['task']['status'] == Task.Status.COMPLETED:
+                    create_bill(convert_results, Bill.Status.VALIDATED)
+                if result['data']['task']['status'] == Task.Status.FAILED:
+                    create_bill(convert_results, Bill.Status.CANCELLED)
+                else:
+                    pass
         except Exception as e:
             logger.error("Error while executing on_task_complete_calculate", exc_info=e)
 

@@ -15,8 +15,8 @@ class BuilderToBillItemConverter:
 
     @classmethod
     def _build_line_fk(cls, bill_line_item, entity):
-        bill_line_item["line_id"] = entity.id
-        bill_line_item['line_type'] = ContentType.objects.get_for_model(entity)
+        bill_line_item["line_id"] = f"{entity.id}"
+        bill_line_item['line_type_id'] = f"{ContentType.objects.get_for_model(entity).id}"
 
     @classmethod
     def _build_quantity(cls, bill_line_item):
@@ -33,5 +33,5 @@ class BuilderToBillItemConverter:
 
     @classmethod
     def _build_date_dates(cls, bill_line_item, payment_plan):
-        bill_line_item["date_valid_from"] = payment_plan.benefit_plan.date_valid_from
-        bill_line_item["date_valid_to"] = payment_plan.benefit_plan.date_valid_to
+        bill_line_item["date_valid_from"] = f"{payment_plan.benefit_plan.date_valid_from}"
+        bill_line_item["date_valid_to"] = f"{payment_plan.benefit_plan.date_valid_to}"

@@ -1,5 +1,6 @@
 import json
 
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
 from core.models import User
@@ -36,7 +37,6 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         limit = payment_plan_parameters['calculation_rule']['limit_per_single_transaction']
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria']
         for beneficiary in beneficiares:
-            # flag to determine is exceeed limit
             calculated_payment = cls._calculate_payment(
                 beneficiary, advanced_filters_criteria, payment, limit
             )
@@ -59,11 +59,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         for criterion in advanced_filters_criteria:
             condition = criterion['custom_filter_condition']
             calculated_amount = float(criterion['amount'])
-            does_amount_apply_for_limitations = criterion.get('count_to_max', True)
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
-                #if does_amount_apply_for_limitations:
-                #    continue
-                #else:
                 payment += calculated_amount
         cls.is_exceed_limit = True if payment > limit else False
         return payment
@@ -91,7 +87,6 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
         )
         convert_results['user'] = kwargs.get('user', None)
-        print('here', cls.is_exceed_limit)
         if not cls.is_exceed_limit:
             result_bill_creation = BillService.bill_create(convert_results=convert_results)
             return result_bill_creation
@@ -118,7 +113,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @transaction.atomic
     @register_service_signal('calcrule_social_protection.create_task')
     def create_task_after_exceeding_limit(cls, convert_results):
-        t = TaskService(convert_results['user']).create({
+        user = convert_results.pop('user')
+        # TODO change the executor and business events
+        TaskService(user).create({
             'source': 'calcrule_social_protection',
             'entity': None,
             'status': Task.Status.RECEIVED,
@@ -126,5 +123,3 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             'business_event': 'benefit_plan_update',
             'data': f"{convert_results}"
         })
-        print(t)
-        return t

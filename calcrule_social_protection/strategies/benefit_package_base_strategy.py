@@ -1,13 +1,12 @@
-import json
-
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
+from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 from core.models import User
 from core.utils import convert_to_python_value
 from core.signals import register_service_signal
 from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
+from tasks_management.apps import TasksManagementConfig
 from tasks_management.models import Task
 from tasks_management.services import TaskService
 
@@ -114,12 +113,11 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @register_service_signal('calcrule_social_protection.create_task')
     def create_task_after_exceeding_limit(cls, convert_results):
         user = convert_results.pop('user')
-        # TODO change the executor and business events
         TaskService(user).create({
             'source': 'calcrule_social_protection',
             'entity': None,
             'status': Task.Status.RECEIVED,
-            'executor_action_event': 'benefit_plan_update',
-            'business_event': 'benefit_plan_update',
+            'executor_action_event': TasksManagementConfig.default_executor_event,
+            'business_event': CalcruleSocialProtectionConfig.calculate_business_event,
             'data': f"{convert_results}"
         })

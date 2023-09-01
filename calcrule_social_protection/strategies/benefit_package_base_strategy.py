@@ -113,14 +113,14 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @transaction.atomic
     @register_service_signal('calcrule_social_protection.create_task')
     def create_task_after_exceeding_limit(cls, convert_results):
-        bill = Bill()
-        bill.code = convert_results['bill_data']['code']
+        business_status = {"code": convert_results['bill_data']['code']}
         user = convert_results.pop('user')
         TaskService(user).create({
             'source': 'calcrule_social_protection',
-            'entity': bill,
+            'entity': None,
             'status': Task.Status.RECEIVED,
             'executor_action_event': TasksManagementConfig.default_executor_event,
             'business_event': CalcruleSocialProtectionConfig.calculate_business_event,
+            'business_status': business_status,
             'data': f"{convert_results}"
         })

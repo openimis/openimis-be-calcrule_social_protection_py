@@ -4,6 +4,7 @@ from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 from core.models import User
 from core.utils import convert_to_python_value
 from core.signals import register_service_signal
+from invoice.models import Bill
 from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
 from tasks_management.apps import TasksManagementConfig
@@ -112,6 +113,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @transaction.atomic
     @register_service_signal('calcrule_social_protection.create_task')
     def create_task_after_exceeding_limit(cls, convert_results):
+        business_status = {"code": convert_results['bill_data']['code']}
         user = convert_results.pop('user')
         TaskService(user).create({
             'source': 'calcrule_social_protection',
@@ -119,5 +121,6 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             'status': Task.Status.RECEIVED,
             'executor_action_event': TasksManagementConfig.default_executor_event,
             'business_event': CalcruleSocialProtectionConfig.calculate_business_event,
+            'business_status': business_status,
             'data': f"{convert_results}"
         })

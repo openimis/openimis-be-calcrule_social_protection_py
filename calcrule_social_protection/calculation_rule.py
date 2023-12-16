@@ -1,11 +1,10 @@
-import uuid
-from calcrule_social_protection.apps import AbsCalculationRule
+from calcrule_social_protection.strategies import (
+    BenefitPackageStrategyStorage
+)
 from calcrule_social_protection.config import CLASS_RULE_PARAM_VALIDATION, DESCRIPTION_CONTRIBUTION_VALUATION, FROM_TO
-from django.core.exceptions import ValidationError
-from gettext import gettext as _
+from core.abs_calculation_rule import AbsCalculationRule
 from core.signals import *
 from core import datetime
-from django.contrib.contenttypes.models import ContentType
 
 
 class SocialProtectionCalculationRule(AbsCalculationRule):
@@ -20,6 +19,7 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
     from_to = FROM_TO
     type = "social_protection"
     sub_type = "benefit_plan"
+    CLASS_NAME_CHECK = ['PaymentPlan']
 
     signal_get_rule_name = Signal(providing_args=[])
     signal_get_rule_details = Signal(providing_args=[])
@@ -44,21 +44,52 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
                 cls.signal_convert_from_to.connect(cls.run_convert, dispatch_uid="on_convert_from_to")
 
     @classmethod
-    def active_for_object(cls, instance, context, type, sub_type):
-        pass
+    def run_calculation_rules(cls, sender, payment_plan, user, context, **kwargs):
+        return cls.calculate_if_active_for_object(payment_plan, **kwargs)
 
     @classmethod
-    def check_calculation(cls, instance):
-        pass
+    def calculate_if_active_for_object(cls, payment_plan, **kwargs):
+        if cls.active_for_object(payment_plan):
+            return cls.calculate(payment_plan, **kwargs)
 
     @classmethod
-    def calculate(cls, instance, **kwargs):
-        pass
+    def active_for_object(cls, payment_plan):
+        return cls.check_calculation(payment_plan)
 
     @classmethod
     def get_linked_class(cls, sender, class_name, **kwargs):
-        pass
+        return ["Calculation"]
 
     @classmethod
-    def convert(cls, instance, convert_to, **kwargs):
-        pass
+    def get_parameters(cls, sender, class_name, instance, **kwargs):
+        rule_details = cls.get_rule_details(sender=sender, class_name=class_name)
+        if rule_details:
+            if instance.__class__.__name__ in cls.CLASS_NAME_CHECK:
+                if cls.check_calculation(payment_plan=instance):
+                    return rule_details["parameters"] if "parameters" in rule_details else []
+            elif instance.__class__.__name__ == 'ABCMeta' and cls.uuid == str(instance.uuid):
+                return rule_details["parameters"] if "parameters" in rule_details else []
+
+    @classmethod
+    def run_convert(cls, payment_plan, **kwargs):
+        return cls.convert(payment_plan=payment_plan, **kwargs)
+
+    @classmethod
+    def check_calculation(cls, payment_plan, **kwargs):
+        return BenefitPackageStrategyStorage.choose_strategy(payment_plan).check_calculation(cls, payment_plan)
+
+    @classmethod
+    def calculate(cls, payment_plan, **kwargs):
+        BenefitPackageStrategyStorage.choose_strategy(payment_plan).calculate(cls, payment_plan, **kwargs)
+
+    @classmethod
+    def convert(cls, payment_plan, **kwargs):
+        BenefitPackageStrategyStorage.choose_strategy(payment_plan).convert(payment_plan, **kwargs)
+
+    @classmethod
+    def get_payment_cycle_parameters(cls, **kwargs):
+        audit_user_id = kwargs.get('audit_user_id', None)
+        start_date = kwargs.get('start_date', None)
+        end_date = kwargs.get('end_date', None)
+        payment_cycle = kwargs.get('payment_cycle', None)
+        return audit_user_id, start_date, end_date, payment_cycle

@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 
 from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
@@ -12,6 +14,9 @@ from tasks_management.models import Task
 from tasks_management.services import TaskService
 
 from calcrule_social_protection.strategies.benefit_package_strategy_interface import BenefitPackageStrategyInterface
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
@@ -56,6 +61,10 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
 
     @classmethod
     def _calculate_payment(cls, beneficiary, advanced_filters_criteria, payment, limit):
+        logger.warning(payment)
+        logger.warning(limit)
+        logger.warning(advanced_filters_criteria)
+        logger.warning(beneficiary.json_ext)
         for criterion in advanced_filters_criteria:
             condition = criterion['custom_filter_condition']
             calculated_amount = float(criterion['amount'])

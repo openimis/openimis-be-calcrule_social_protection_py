@@ -38,8 +38,8 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         audit_user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
-        payment = payment_plan_parameters['calculation_rule']['fixed_batch']
-        limit = payment_plan_parameters['calculation_rule']['limit_per_single_transaction']
+        payment = float(payment_plan_parameters['calculation_rule']['fixed_batch'])
+        limit = float(payment_plan_parameters['calculation_rule']['limit_per_single_transaction'])
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria'] if 'advanced_criteria' in payment_plan_parameters else []
         for beneficiary in beneficiares:
             calculated_payment = cls._calculate_payment(
@@ -61,19 +61,11 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
 
     @classmethod
     def _calculate_payment(cls, beneficiary, advanced_filters_criteria, payment, limit):
-        logger.warning(payment)
-        logger.warning(limit)
-        logger.warning(advanced_filters_criteria)
-        logger.warning(beneficiary.json_ext)
         for criterion in advanced_filters_criteria:
-            logger.warning(criterion)
             condition = criterion['custom_filter_condition']
-            logger.warning(condition)
             calculated_amount = float(criterion['amount'])
-            logger.warning(calculated_amount)
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
                 payment += calculated_amount
-                logger.warning(payment)
         cls.is_exceed_limit = True if payment > limit else False
         return payment
 

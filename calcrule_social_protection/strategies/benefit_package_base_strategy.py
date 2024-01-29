@@ -66,10 +66,14 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         logger.warning(advanced_filters_criteria)
         logger.warning(beneficiary.json_ext)
         for criterion in advanced_filters_criteria:
+            logger.warning(criterion)
             condition = criterion['custom_filter_condition']
+            logger.warning(condition)
             calculated_amount = float(criterion['amount'])
+            logger.warning(calculated_amount)
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
                 payment += calculated_amount
+                logger.warning(payment)
         cls.is_exceed_limit = True if payment > limit else False
         return payment
 

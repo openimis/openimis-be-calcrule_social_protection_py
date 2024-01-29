@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 
 from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
@@ -12,6 +14,9 @@ from tasks_management.models import Task
 from tasks_management.services import TaskService
 
 from calcrule_social_protection.strategies.benefit_package_strategy_interface import BenefitPackageStrategyInterface
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
@@ -33,8 +38,8 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         audit_user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(i_user__id=audit_user_id).first()
-        payment = payment_plan_parameters['calculation_rule']['fixed_batch']
-        limit = payment_plan_parameters['calculation_rule']['limit_per_single_transaction']
+        payment = float(payment_plan_parameters['calculation_rule']['fixed_batch'])
+        limit = float(payment_plan_parameters['calculation_rule']['limit_per_single_transaction'])
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria'] if 'advanced_criteria' in payment_plan_parameters else []
         for beneficiary in beneficiares:
             calculated_payment = cls._calculate_payment(

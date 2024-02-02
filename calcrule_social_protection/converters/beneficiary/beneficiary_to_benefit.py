@@ -1,4 +1,6 @@
 from calcrule_social_protection.converters.builder import BuilderToBenefitConverter
+from calcrule_social_protection.utils import generate_unique_code
+from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 
 
 class BeneficiaryToBenefitConverter(BuilderToBenefitConverter):
@@ -8,13 +10,6 @@ class BeneficiaryToBenefitConverter(BuilderToBenefitConverter):
         benefit["individual"] = entity.individual
 
     @classmethod
-    def _build_code(cls, benefit, entity, payment_plan):
-        individual = entity.individual
-        benefit_plan = payment_plan.benefit_plan
-        benefit["receipt"] = f"{benefit_plan.code}-{individual.first_name}-{individual.last_name}"
-
-    @classmethod
-    def _build_receipt(cls, benefit, entity, payment_plan):
-        individual = entity.individual
-        benefit_plan = payment_plan.benefit_plan
-        benefit["receipt"] = f"{benefit_plan.code}-{individual.first_name}-{individual.last_name}"
+    def _build_code(cls, benefit):
+        unique_code = generate_unique_code(CalcruleSocialProtectionConfig.code_length)
+        benefit["code"] = unique_code

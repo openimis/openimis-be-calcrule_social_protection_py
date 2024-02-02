@@ -1,6 +1,8 @@
 from django.contrib.contenttypes.models import ContentType
 from invoice.apps import InvoiceConfig
 from invoice.models import Bill
+from calcrule_social_protection.utils import generate_unique_code
+from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 
 
 class BuilderToBillConverter:
@@ -11,9 +13,9 @@ class BuilderToBillConverter:
         bill = {}
         cls._build_subject(bill, entity)
         cls._build_thirdparty(bill, payment_plan)
-        cls._build_code(bill, payment_plan, entity, end_date)
+        cls._build_code(bill)
         cls._build_price(bill, amount)
-        cls._build_terms(bill, payment_plan)
+        cls._build_terms(bill, payment_plan, entity, end_date)
         cls._build_date_dates(bill, payment_plan)
         cls._build_currency(bill)
         cls._build_status(bill)
@@ -30,8 +32,8 @@ class BuilderToBillConverter:
         bill['thirdparty_type_id'] = f"{ContentType.objects.get_for_model(payment_plan).id}"
 
     @classmethod
-    def _build_code(cls, bill, payment_plan, entity, end_date):
-        pass
+    def _build_code(cls, bill):
+        bill["code"] = f"{generate_unique_code(CalcruleSocialProtectionConfig.code_length)}"
 
     @classmethod
     def _build_price(cls, bill, amount):
@@ -55,5 +57,5 @@ class BuilderToBillConverter:
         bill["status"] = Bill.Status.VALIDATED.value
 
     @classmethod
-    def _build_terms(cls, bill, payment_plan):
-        bill["terms"] = f'{payment_plan.benefit_plan.name}'
+    def _build_terms(cls, bill, payment_plan, entity, end_date):
+        pass

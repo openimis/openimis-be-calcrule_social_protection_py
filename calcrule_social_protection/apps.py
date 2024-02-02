@@ -5,7 +5,8 @@ from calculation.apps import CALCULATION_RULES
 
 MODULE_NAME = 'calcrule_social_protection'
 DEFAULT_CFG = {
-    'calculate_business_event': 'calcrule_social_protection.calculate'
+    'calculate_business_event': 'calcrule_social_protection.calculate',
+    'code_length': 8
 }
 
 
@@ -22,6 +23,7 @@ class CalcruleSocialProtectionConfig(AppConfig):
     name = MODULE_NAME
 
     calculate_business_event = None
+    code_length = None
 
     def ready(self):
         from core.models import ModuleConfiguration

@@ -9,7 +9,7 @@ from core.signals import register_service_signal
 from invoice.models import Bill
 from invoice.services import BillService
 from social_protection.models import BeneficiaryStatus
-from payroll.services import BenefitConsumptionService
+from payroll.services import BenefitConsumptionService, PayrollService
 from tasks_management.apps import TasksManagementConfig
 from tasks_management.models import Task
 from tasks_management.services import TaskService
@@ -30,10 +30,13 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @classmethod
     def calculate(cls, calculation, payment_plan, **kwargs):
         # 1. Get the list of beneficiares assigned to benefit plan from payment plan
-        # each beneficiary group from benefit plan assigned to this payment plan is a single bill
-        beneficiares = cls.BENEFICIARY_OBJECT.objects.filter(
-            benefit_plan=payment_plan.benefit_plan, status=BeneficiaryStatus.ACTIVE
-        )
+        # each beneficiary group from benefit plan assigned to this payment plan is a single benefit
+        payroll = kwargs.get('payroll', None)
+        beneficiaries = kwargs.get('beneficiaries_queryset', None)
+        if not beneficiaries:
+            beneficiaries = cls.BENEFICIARY_OBJECT.objects.filter(
+                benefit_plan=payment_plan.benefit_plan, status=BeneficiaryStatus.ACTIVE
+            )
         # 2. Get the parameters from payment plan with fixed and advanced criteria
         payment_plan_parameters = payment_plan.json_ext
         audit_user_id, start_date, end_date, payment_cycle = \
@@ -42,7 +45,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         payment = float(payment_plan_parameters['calculation_rule']['fixed_batch'])
         limit = float(payment_plan_parameters['calculation_rule']['limit_per_single_transaction'])
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria'] if 'advanced_criteria' in payment_plan_parameters else []
-        for beneficiary in beneficiares:
+        for beneficiary in beneficiaries:
             calculated_payment = cls._calculate_payment(
                 beneficiary, advanced_filters_criteria, payment, limit
             )
@@ -52,7 +55,8 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
                 "amount": calculated_payment,
                 "user": user,
                 "end_date": end_date,
-                "payment_cycle": payment_cycle
+                "payment_cycle": payment_cycle,
+                "payroll": payroll,
             }
             calculation.run_convert(
                 payment_plan,
@@ -85,6 +89,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     def convert(cls, payment_plan, **kwargs):
         entity = kwargs.get('entity', None)
         amount = kwargs.get('amount', None)
+        payroll = kwargs.get('payroll', None)
         end_date = kwargs.get('end_date', None)
         converter = kwargs.get('converter')
         converter_item = kwargs.get('converter_item')
@@ -106,6 +111,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
                 bill_queryset = Bill.objects.filter(id__in=[bill_id])
                 benefit_id = benefit_result['data']['id']
                 benefit_service.create_or_update_benefit_attachment(bill_queryset, benefit_id)
+                if payroll:
+                    payroll_service = PayrollService(user=convert_results['user'])
+                    payroll_service.attach_benefit_to_payroll(payroll.id, benefit_id)
             return result_bill_creation
         else:
             cls.create_task_after_exceeding_limit(convert_results=convert_results)

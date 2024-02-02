@@ -1,5 +1,4 @@
-from payroll.models import BenefitConsumption, BenefitConsumptionStatus
-from invoice.models import Bill
+from payroll.models import BenefitConsumptionStatus
 
 
 class BuilderToBenefitConverter:
@@ -9,8 +8,7 @@ class BuilderToBenefitConverter:
     def to_benefit_obj(cls, entity, amount, payment_plan):
         benefit = {}
         cls._build_individual(benefit, entity)
-        cls._build_code(benefit, entity, payment_plan)
-        cls._build_receipt(benefit, entity, payment_plan)
+        cls._build_code(benefit)
         cls._build_amount(benefit, amount)
         cls._build_date_dates(benefit, payment_plan)
         cls._build_type(benefit)
@@ -22,16 +20,7 @@ class BuilderToBenefitConverter:
         pass
 
     @classmethod
-    def _build_code(cls, benefit, entity, payment_plan):
-        pass
-
-    @classmethod
-    def _build_receipt(cls, benefit, entity, payment_plan):
-        """"
-        individual = beneficiary.individual
-        benefit_plan = payment_plan.benefit_plan
-        benefit["receipt"] = f"{benefit_plan.code}-{individual.first_name}-{individual.last_name}"
-        """
+    def _build_code(cls, benefit):
         pass
 
     @classmethod

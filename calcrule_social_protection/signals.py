@@ -8,8 +8,8 @@ from core.signals import bind_service_signal
 
 from openIMIS.openimisapps import openimis_apps
 
+from calcrule_social_protection.strategies import BaseBenefitPackageStrategy
 from invoice.models import Bill
-from invoice.services import BillService
 from tasks_management.models import Task
 
 logger = logging.getLogger(__name__)
@@ -19,11 +19,16 @@ imis_modules = openimis_apps()
 def bind_service_signals():
 
     def on_task_complete_calculate(**kwargs):
-        def create_bill(results, bill_status):
-            results['bill_data']['status'] = bill_status
+        def create_bill(results, convert_benefit, payroll_id, bill_status):
             user = User.objects.get(id=result['data']['user']['id'])
             results['user'] = user
-            BillService(user).bill_create(convert_results=results)
+            BaseBenefitPackageStrategy.create_and_save_business_entities(
+                results,
+                convert_benefit,
+                payroll_id,
+                user,
+                bill_status
+            )
 
         try:
             result = kwargs.get('result', None)
@@ -35,10 +40,12 @@ def bind_service_signals():
                 convert_results = convert_results.replace("'", '"')
                 convert_results = json.loads(convert_results)
                 task_status = task['status']
+                convert_benefit = convert_results.pop("benefit", None)
+                payroll_id = convert_results.pop("payroll_id", None)
                 if task_status == Task.Status.COMPLETED:
-                    create_bill(convert_results, Bill.Status.VALIDATED)
+                    create_bill(convert_results, convert_benefit, payroll_id, Bill.Status.VALIDATED)
                 if task_status == Task.Status.FAILED:
-                    create_bill(convert_results, Bill.Status.CANCELLED)
+                    create_bill(convert_results, convert_benefit, payroll_id, Bill.Status.CANCELLED)
                 else:
                     pass
         except Exception as e:

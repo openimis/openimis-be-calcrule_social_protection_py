@@ -1,3 +1,5 @@
+from calcrule_social_protection.utils import generate_unique_code
+from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 from payroll.models import BenefitConsumptionStatus
 
 
@@ -21,7 +23,8 @@ class BuilderToBenefitConverter:
 
     @classmethod
     def _build_code(cls, benefit):
-        pass
+        unique_code = generate_unique_code(CalcruleSocialProtectionConfig.code_length)
+        benefit["code"] = unique_code
 
     @classmethod
     def _build_amount(cls, benefit, amount):

@@ -101,22 +101,41 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         convert_results_benefit = cls._convert_entity_to_benefit(
             converter_benefit, payment_plan, entity, amount
         )
+        user = convert_results['user']
         if not cls.is_exceed_limit:
-            result_bill_creation = BillService.bill_create(convert_results=convert_results)
+            cls.create_and_save_business_entities(
+                convert_results,
+                convert_results_benefit,
+                payroll.id,
+                user
+            )
+        else:
+            cls.create_task_after_exceeding_limit(
+                convert_results=convert_results,
+                convert_results_benefit=convert_results_benefit,
+                payroll=payroll
+            )
+
+    @classmethod
+    def create_and_save_business_entities(
+            cls, convert_results, convert_results_benefit, payroll_id, user, bill_status=None
+    ):
+        if bill_status is not None:
+            convert_results['bill_data']['status'] = bill_status
+        result_bill_creation = BillService.bill_create(convert_results=convert_results)
+        if result_bill_creation["success"]:
             bill_id = result_bill_creation['data']['id']
-            benefit_service = BenefitConsumptionService(user=convert_results['user'])
+            benefit_service = BenefitConsumptionService(user)
             benefit_result = benefit_service.create(convert_results_benefit['benefit_data'])
             if benefit_result["success"]:
                 # create benefit attachemnts - attach bill to benefit
                 bill_queryset = Bill.objects.filter(id__in=[bill_id])
                 benefit_id = benefit_result['data']['id']
                 benefit_service.create_or_update_benefit_attachment(bill_queryset, benefit_id)
-                if payroll:
-                    payroll_service = PayrollService(user=convert_results['user'])
-                    payroll_service.attach_benefit_to_payroll(payroll.id, benefit_id)
-            return result_bill_creation
-        else:
-            cls.create_task_after_exceeding_limit(convert_results=convert_results)
+                if payroll_id:
+                    payroll_service = PayrollService(user=user)
+                    payroll_service.attach_benefit_to_payroll(payroll_id, benefit_id)
+        return result_bill_creation
 
     @classmethod
     def _convert_entity_to_bill(
@@ -147,12 +166,14 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
     @classmethod
     @transaction.atomic
     @register_service_signal('calcrule_social_protection.create_task')
-    def create_task_after_exceeding_limit(cls, convert_results):
+    def create_task_after_exceeding_limit(cls, convert_results, convert_results_benefit, payroll):
         business_status = {"code": convert_results['bill_data']['code']}
         user = convert_results.pop('user')
+        convert_results['benefit'] = convert_results_benefit
+        convert_results['payroll_id'] = f"{payroll.id}"
         TaskService(user).create({
             'source': 'calcrule_social_protection',
-            'entity': None,
+            'entity': payroll,
             'status': Task.Status.RECEIVED,
             'executor_action_event': TasksManagementConfig.default_executor_event,
             'business_event': CalcruleSocialProtectionConfig.calculate_business_event,

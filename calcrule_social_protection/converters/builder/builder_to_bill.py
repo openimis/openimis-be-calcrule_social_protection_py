@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from invoice.apps import InvoiceConfig
 from invoice.models import Bill
-from calcrule_social_protection.utils import generate_unique_code
+from calcrule_social_protection.utils import CodeGenerator
 from calcrule_social_protection.apps import CalcruleSocialProtectionConfig
 
 
@@ -33,7 +33,13 @@ class BuilderToBillConverter:
 
     @classmethod
     def _build_code(cls, bill):
-        bill["code"] = f"{generate_unique_code(CalcruleSocialProtectionConfig.code_length)}"
+        code = CodeGenerator.generate_unique_code(
+            'invoice',
+            'Bill',
+            'code',
+            CalcruleSocialProtectionConfig.code_length
+        )
+        bill["code"] = code
 
     @classmethod
     def _build_price(cls, bill, amount):

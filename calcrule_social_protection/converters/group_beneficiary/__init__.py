@@ -1,2 +1,3 @@
 from calcrule_social_protection.converters.group_beneficiary.group_to_bill import GroupToBillConverter
 from calcrule_social_protection.converters.group_beneficiary.group_to_bill_item import GroupToBillItemConverter
+from calcrule_social_protection.converters.group_beneficiary.group_to_benefit import GroupToBenefitConverter

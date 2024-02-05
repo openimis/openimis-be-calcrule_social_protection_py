@@ -1,8 +1,8 @@
-from invoice.services import BillService
 from social_protection.models import Beneficiary
 from calcrule_social_protection.converters import (
     BeneficiaryToBillConverter,
-    BeneficiaryToBillItemConverter
+    BeneficiaryToBillItemConverter,
+    BeneficiaryToBenefitConverter
 )
 from calcrule_social_protection.strategies.benefit_package_base_strategy import BaseBenefitPackageStrategy
 
@@ -19,6 +19,7 @@ class IndividualBenefitPackageStrategy(BaseBenefitPackageStrategy):
             "entity": beneficiary,
             "converter": BeneficiaryToBillConverter,
             "converter_item": BeneficiaryToBillItemConverter,
+            "converter_benefit": BeneficiaryToBenefitConverter,
             **kwargs
         }
         return super().convert(payment_plan, **additional_parameters)

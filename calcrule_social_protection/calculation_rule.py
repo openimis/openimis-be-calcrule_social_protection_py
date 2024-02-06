@@ -88,8 +88,8 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
 
     @classmethod
     def get_payment_cycle_parameters(cls, **kwargs):
-        audit_user_id = kwargs.get('audit_user_id', None)
+        user_id = kwargs.get('user_id', None)
         start_date = kwargs.get('start_date', None)
         end_date = kwargs.get('end_date', None)
         payment_cycle = kwargs.get('payment_cycle', None)
-        return audit_user_id, start_date, end_date, payment_cycle
+        return user_id, start_date, end_date, payment_cycle

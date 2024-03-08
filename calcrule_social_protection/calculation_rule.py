@@ -5,7 +5,7 @@ from calcrule_social_protection.config import CLASS_RULE_PARAM_VALIDATION, DESCR
 from core.abs_calculation_rule import AbsCalculationRule
 from core.signals import *
 from core import datetime
-
+from contribution_plan.models import PaymentPlan
 
 class SocialProtectionCalculationRule(AbsCalculationRule):
     version = 1
@@ -44,8 +44,11 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
                 cls.signal_convert_from_to.connect(cls.run_convert, dispatch_uid="on_convert_from_to")
 
     @classmethod
-    def run_calculation_rules(cls, sender, payment_plan, user, context, **kwargs):
-        return cls.calculate_if_active_for_object(payment_plan, **kwargs)
+    def run_calculation_rules(cls, sender, instance, user, context, **kwargs):
+        if isinstance(instance, PaymentPlan):
+            return cls.calculate_if_active_for_object(instance, **kwargs)
+        else:
+            return False
 
     @classmethod
     def calculate_if_active_for_object(cls, payment_plan, **kwargs):

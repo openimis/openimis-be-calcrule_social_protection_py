@@ -9,14 +9,14 @@ class BuilderToBillConverter:
     TYPE = None
 
     @classmethod
-    def to_bill_obj(cls, payment_plan, entity, amount, end_date):
+    def to_bill_obj(cls, payment_plan, entity, amount, end_date, payment_cycle):
         bill = {}
         cls._build_subject(bill, entity)
         cls._build_thirdparty(bill, payment_plan)
         cls._build_code(bill)
         cls._build_price(bill, amount)
         cls._build_terms(bill, payment_plan, entity, end_date)
-        cls._build_date_dates(bill, payment_plan)
+        cls._build_date_dates(bill, payment_plan, payment_cycle)
         cls._build_currency(bill)
         cls._build_status(bill)
         return bill
@@ -46,10 +46,9 @@ class BuilderToBillConverter:
         bill["amount_net"] = amount
 
     @classmethod
-    def _build_date_dates(cls, bill, payment_plan):
-        from core import datetime, datetimedelta
-        bill["date_due"] = f"{datetime.date.today() + datetimedelta(days=30)}"
-        bill["date_bill"] = f"{datetime.date.today()}"
+    def _build_date_dates(cls, bill, payment_plan, payment_cycle):
+        bill["date_due"] = f"{payment_cycle.end_date}"
+        bill["date_bill"] = f"{payment_cycle.start_date}"
         bill["date_valid_from"] = f"{ payment_plan.benefit_plan.date_valid_from}"
         bill["date_valid_to"] = f"{payment_plan.benefit_plan.date_valid_to}"
 

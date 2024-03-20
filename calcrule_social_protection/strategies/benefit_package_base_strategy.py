@@ -94,12 +94,13 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         converter = kwargs.get('converter')
         converter_item = kwargs.get('converter_item')
         converter_benefit = kwargs.get('converter_benefit')
+        payment_cycle = kwargs.get('payment_cycle')
         convert_results = cls._convert_entity_to_bill(
-            converter, converter_item, payment_plan, entity, amount, end_date
+            converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
         )
         convert_results['user'] = kwargs.get('user', None)
         convert_results_benefit = cls._convert_entity_to_benefit(
-            converter_benefit, payment_plan, entity, amount
+            converter_benefit, payment_plan, entity, amount, payment_cycle
         )
         user = convert_results['user']
         if not cls.is_exceed_limit:
@@ -139,10 +140,10 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
 
     @classmethod
     def _convert_entity_to_bill(
-        cls, converter, converter_item, payment_plan, entity, amount, end_date
+        cls, converter, converter_item, payment_plan, entity, amount, end_date, payment_cycle
     ):
         bill = converter.to_bill_obj(
-            payment_plan, entity, amount, end_date
+            payment_plan, entity, amount, end_date, payment_cycle
         )
         bill_line_items = [
             converter_item.to_bill_item_obj(payment_plan, entity, amount)
@@ -155,9 +156,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
 
     @classmethod
     def _convert_entity_to_benefit(
-            cls, converter_benefit, payment_plan, entity, amount
+            cls, converter_benefit, payment_plan, entity, amount, payment_cycle
     ):
-        benefit = converter_benefit.to_benefit_obj(entity, amount, payment_plan)
+        benefit = converter_benefit.to_benefit_obj(entity, amount, payment_plan, payment_cycle)
         return {
             'benefit_data': benefit,
             'type_conversion': 'beneficiary - benefit'

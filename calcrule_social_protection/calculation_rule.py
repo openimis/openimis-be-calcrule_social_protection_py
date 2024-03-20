@@ -56,7 +56,7 @@ class SocialProtectionCalculationRule(AbsCalculationRule):
             return cls.calculate(payment_plan, **kwargs)
 
     @classmethod
-    def active_for_object(cls, payment_plan):
+    def active_for_object(cls, payment_plan, **kwargs):
         return cls.check_calculation(payment_plan)
 
     @classmethod

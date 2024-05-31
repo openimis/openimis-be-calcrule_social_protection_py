@@ -71,7 +71,10 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             calculated_amount = float(criterion['amount'])
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
                 payment += calculated_amount
-        cls.is_exceed_limit = True if payment > limit else False
+        if limit > 0:
+            cls.is_exceed_limit = True if payment > limit else False
+        else:
+            cls.is_exceed_limit = False
         return payment
 
     @classmethod

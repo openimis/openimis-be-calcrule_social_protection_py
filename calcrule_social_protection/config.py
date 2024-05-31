@@ -34,7 +34,7 @@ CLASS_RULE_PARAM_VALIDATION = [
                 },
                 "relevance": "True",
                 "condition": "INPUT>=0",
-                "default": "0"
+                "default": ""
             }
         ]
     }

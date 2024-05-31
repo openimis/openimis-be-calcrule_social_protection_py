@@ -43,7 +43,9 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(id=user_id).first()
         payment = float(payment_plan_parameters['calculation_rule']['fixed_batch'])
-        limit = float(payment_plan_parameters['calculation_rule']['limit_per_single_transaction'])
+        limit = None
+        if payment_plan_parameters['calculation_rule']['limit_per_single_transaction'] != "":
+            limit = float(payment_plan_parameters['calculation_rule']['limit_per_single_transaction'])
         advanced_filters_criteria = payment_plan_parameters['advanced_criteria'] if 'advanced_criteria' in payment_plan_parameters else []
         for beneficiary in beneficiaries:
             calculated_payment = cls._calculate_payment(
@@ -71,7 +73,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
             calculated_amount = float(criterion['amount'])
             if cls._does_beneficiary_meet_condition(beneficiary, condition):
                 payment += calculated_amount
-        if limit > 0:
+        if limit:
             cls.is_exceed_limit = True if payment > limit else False
         else:
             cls.is_exceed_limit = False

@@ -7,17 +7,23 @@ class GroupToBenefitConverter(BuilderToBenefitConverter):
     def to_benefit_obj(cls, entity, amount, payment_plan, payment_cycle):
         group_head = GroupIndividual.objects.filter(
             group_id=entity.group.id,
-            role=GroupIndividual.RecipientType.PRIMARY.value,
+            role=GroupIndividual.Role.HEAD.value,
             is_deleted=False
         ).first()
         if group_head:
             return super().to_benefit_obj(group_head, amount, payment_plan, payment_cycle)
-        else:
-            group_head = GroupIndividual.objects.filter(
-                group_id=entity.group.id,
-                is_deleted=False
-            ).first()
-            return super().to_benefit_obj(group_head, amount, payment_plan, payment_cycle)
+        group_primary = GroupIndividual.objects.filter(
+            group_id=entity.group.id,
+            role=GroupIndividual.RecipientType.PRIMARY.value,
+            is_deleted=False
+        ).first()
+        if group_primary:
+            return super().to_benefit_obj(group_primary, amount, payment_plan, payment_cycle)
+        group_head = GroupIndividual.objects.filter(
+            group_id=entity.group.id,
+            is_deleted=False
+        ).first()
+        return super().to_benefit_obj(group_head, amount, payment_plan, payment_cycle)
 
     @classmethod
     def _build_individual(cls, benefit, entity):

@@ -1,4 +1,4 @@
-from social_protection.models import GroupBeneficiary
+from beneficiary.models import GroupBeneficiary
 
 from calcrule_social_protection.converters import (
     GroupToBillConverter,

@@ -8,7 +8,7 @@ from core.utils import convert_to_python_value
 from core.signals import register_service_signal
 from invoice.models import Bill
 from invoice.services import BillService
-from social_protection.models import BeneficiaryStatus
+from beneficiary.models import BeneficiaryStatus
 from payroll.services import BenefitConsumptionService, PayrollService
 from tasks_management.apps import TasksManagementConfig
 from tasks_management.models import Task
@@ -42,6 +42,7 @@ class BaseBenefitPackageStrategy(BenefitPackageStrategyInterface):
         user_id, start_date, end_date, payment_cycle = \
             calculation.get_payment_cycle_parameters(**kwargs)
         user = User.objects.filter(id=user_id).first()
+        print(payment_plan_parameters)
         payment = float(payment_plan_parameters['calculation_rule']['fixed_batch'])
         limit = None
         if payment_plan_parameters['calculation_rule']['limit_per_single_transaction'] != "":

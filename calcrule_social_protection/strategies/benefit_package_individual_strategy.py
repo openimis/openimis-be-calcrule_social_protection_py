@@ -1,4 +1,4 @@
-from social_protection.models import Beneficiary
+from beneficiary.models import Beneficiary
 from calcrule_social_protection.converters import (
     BeneficiaryToBillConverter,
     BeneficiaryToBillItemConverter,
